@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FinFlow · Invoice Reconciliation Agent</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --panel: #141a2e;
+        --panel-2: #1b2240;
+        --text: #e7ecff;
+        --muted: #98a3c7;
+        --accent: #6c9eff;
+        --good: #34d399;
+        --warn: #fbbf24;
+        --bad: #f87171;
+        --border: #283060;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background: linear-gradient(180deg, #060920 0%, var(--bg) 100%);
+        color: var(--text);
+        min-height: 100vh;
+      }
+      header {
+        padding: 24px 32px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      header .logo {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #6c9eff, #b388ff);
+      }
+      header h1 {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: 0.2px;
+      }
+      header small { color: var(--muted); }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 32px 24px;
+        display: grid;
+        grid-template-columns: 1fr 1.4fr;
+        gap: 24px;
+      }
+      @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+      }
+      .card h2 { margin: 0 0 12px 0; font-size: 16px; }
+      .card p.hint { margin: 0 0 16px 0; color: var(--muted); font-size: 13px; }
+      label.file-drop {
+        display: block;
+        padding: 28px;
+        border: 1.5px dashed var(--border);
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        background: var(--panel-2);
+        transition: border-color 0.15s, background 0.15s;
+      }
+      label.file-drop:hover { border-color: var(--accent); }
+      input[type=file] { display: none; }
+      .btn {
+        margin-top: 12px;
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #061025;
+        font-weight: 600;
+        border: 0;
+        cursor: pointer;
+      }
+      .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+      .divider {
+        text-align: center;
+        color: var(--muted);
+        font-size: 12px;
+        margin: 14px 0;
+      }
+      textarea {
+        width: 100%;
+        min-height: 130px;
+        background: var(--panel-2);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+      }
+      pre {
+        margin: 0;
+        background: #0a0e22;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 16px;
+        font-size: 12.5px;
+        white-space: pre-wrap;
+        max-height: 540px;
+        overflow: auto;
+      }
+      .pill {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-left: 8px;
+      }
+      .pill.MATCHED { background: rgba(52, 211, 153, 0.18); color: var(--good); }
+      .pill.PARTIAL { background: rgba(251, 191, 36, 0.18); color: var(--warn); }
+      .pill.FAILED  { background: rgba(248, 113, 113, 0.18); color: var(--bad);  }
+      .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+      .muted { color: var(--muted); font-size: 12.5px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo"></div>
+      <div>
+        <h1>FinFlow Invoice Reconciliation Agent</h1>
+        <small>FR-1 … FR-7 · Gemini-powered · session-scoped demo</small>
+      </div>
+    </header>
+
+    <main>
+      <section class="card">
+        <h2>1 · Upload an Invoice</h2>
+        <p class="hint">PDF, image, plain text — or paste raw JSON below.</p>
+
+        <label class="file-drop" for="file">
+          <span id="file-label">Drop a file here, or click to browse</span>
+        </label>
+        <input id="file" type="file" />
+        <button class="btn" id="upload-btn">Upload &amp; Reconcile</button>
+
+        <div class="divider">— or paste raw invoice JSON —</div>
+
+        <textarea id="json-input" placeholder='{
+  "vendor_name": "Acme Industrial Supplies",
+  "invoice_number": "INV-2026-0429",
+  "invoice_date": "2026-04-29",
+  "line_items": [
+    { "description": "Hex bolts M8", "qty": 1000, "unit_price": 0.45 },
+    { "description": "Steel plates 4mm", "qty": 200, "unit_price": 20.25 }
+  ],
+  "total_amount": 4500,
+  "currency": "USD",
+  "po_reference": "PO-1001"
+}'></textarea>
+        <button class="btn" id="json-btn">Reconcile JSON</button>
+      </section>
+
+      <section class="card">
+        <div class="row">
+          <h2 style="margin:0">2 · Reconciliation Report</h2>
+          <span id="status-pill"></span>
+        </div>
+        <div class="muted" id="invoice-id"></div>
+        <pre id="output">Awaiting submission…</pre>
+      </section>
+    </main>
+
+    <script>
+      const fileInput = document.getElementById('file');
+      const fileLabel = document.getElementById('file-label');
+      const uploadBtn = document.getElementById('upload-btn');
+      const jsonBtn   = document.getElementById('json-btn');
+      const output    = document.getElementById('output');
+      const statusPill = document.getElementById('status-pill');
+      const invoiceIdEl = document.getElementById('invoice-id');
+
+      fileInput.addEventListener('change', () => {
+        fileLabel.textContent = fileInput.files[0]?.name || 'Drop a file here, or click to browse';
+      });
+
+      function render(report) {
+        output.textContent = JSON.stringify(report, null, 2);
+        const s = report.reconciliation_status || '';
+        statusPill.className = 'pill ' + s;
+        statusPill.textContent = s;
+        invoiceIdEl.textContent = report.invoice_id ? 'invoice_id: ' + report.invoice_id : '';
+      }
+
+      async function call(url, opts) {
+        try {
+          const res = await fetch(url, opts);
+          const data = await res.json();
+          render(data);
+        } catch (e) {
+          output.textContent = 'Request failed: ' + e.message;
+          statusPill.textContent = '';
+        }
+      }
+
+      uploadBtn.addEventListener('click', async () => {
+        if (!fileInput.files[0]) {
+          output.textContent = 'Please choose a file first.';
+          return;
+        }
+        const fd = new FormData();
+        fd.append('file', fileInput.files[0]);
+        uploadBtn.disabled = true;
+        output.textContent = 'Uploading and extracting via LLM…';
+        await call('/upload', { method: 'POST', body: fd });
+        uploadBtn.disabled = false;
+      });
+
+      jsonBtn.addEventListener('click', async () => {
+        const txt = document.getElementById('json-input').value.trim();
+        if (!txt) {
+          output.textContent = 'Paste invoice JSON above first.';
+          return;
+        }
+        try { JSON.parse(txt); } catch (e) {
+          output.textContent = 'Invalid JSON: ' + e.message;
+          return;
+        }
+        jsonBtn.disabled = true;
+        output.textContent = 'Reconciling…';
+        await call('/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: txt,
+        });
+        jsonBtn.disabled = false;
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,58 @@
+[
+  {
+    "po_reference": "PO-1001",
+    "vendor_name": "Acme Industrial Supplies",
+    "po_value": 4500.0,
+    "currency": "USD",
+    "issued_date": "2026-01-10"
+  },
+  {
+    "po_reference": "PO-1002",
+    "vendor_name": "Globex Logistics Pvt Ltd",
+    "po_value": 125000.0,
+    "currency": "INR",
+    "issued_date": "2026-02-03"
+  },
+  {
+    "po_reference": "PO-1003",
+    "vendor_name": "Initech Software Services",
+    "po_value": 9800.0,
+    "currency": "EUR",
+    "issued_date": "2026-02-15"
+  },
+  {
+    "po_reference": "PO-1004",
+    "vendor_name": "Umbrella Lab Equipment",
+    "po_value": 27500.0,
+    "currency": "USD",
+    "issued_date": "2026-03-01"
+  },
+  {
+    "po_reference": "PO-1005",
+    "vendor_name": "Stark Manufacturing",
+    "po_value": 78000.0,
+    "currency": "USD",
+    "issued_date": "2026-03-12"
+  },
+  {
+    "po_reference": "PO-1006",
+    "vendor_name": "Wayne Enterprises - Components Div",
+    "po_value": 56000.0,
+    "currency": "GBP",
+    "issued_date": "2026-03-22"
+  },
+  {
+    "po_reference": "PO-1007",
+    "vendor_name": "Hooli Cloud Services",
+    "po_value": 12300.0,
+    "currency": "USD",
+    "issued_date": "2026-04-05"
+  },
+  {
+    "po_reference": "PO-1008",
+    "vendor_name": "Pied Piper Compression",
+    "po_value": 3450.0,
+    "currency": "USD",
+    "issued_date": "2026-04-18"
+  }
+]
