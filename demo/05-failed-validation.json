@@ -1,0 +1,11 @@
+{
+  "vendor_name": "Stark Manufacturing",
+  "invoice_number": "INV-DEMO-BADFIELDS-005",
+  "invoice_date": "01/05/2026",
+  "line_items": [
+    { "description": "Reactor housing", "qty": 1, "unit_price": 78000 }
+  ],
+  "total_amount": 78000,
+  "currency": "DOLLARS",
+  "po_reference": "PO-1005"
+}

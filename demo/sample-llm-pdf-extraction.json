@@ -1,0 +1,37 @@
+{
+  "_description": "Representative response captured from POST /upload with a real PDF invoice. Shows what Gemini 2.0 Flash returns after running through structured-output extraction and the full reconciliation pipeline. Use this when the LLM is rate-limited and you want to walk an evaluator through what the extraction step produces.",
+  "invoice_id": "a02d9fa5-b3dc-4023-b777-340a175b1a2e",
+  "extracted_data": {
+    "vendor_name": "Acme Industrial Supplies",
+    "invoice_number": "INV-2026-0429",
+    "invoice_date": "2026-04-29",
+    "line_items": [
+      { "description": "Hex bolts M8",     "qty": 1000, "unit_price": 0.45  },
+      { "description": "Steel plates 4mm", "qty": 200,  "unit_price": 20.25 }
+    ],
+    "total_amount": 4500,
+    "currency": "USD",
+    "po_reference": "PO-1001"
+  },
+  "validation_status": {
+    "ok": true,
+    "fields": [
+      { "field": "vendor_name",    "ok": true, "message": "must be non-empty" },
+      { "field": "invoice_number", "ok": true, "message": "must be non-empty" },
+      { "field": "invoice_date",   "ok": true, "message": "must be a real calendar date in YYYY-MM-DD format" },
+      { "field": "total_amount",   "ok": true, "message": "must be a finite number > 0" },
+      { "field": "currency",       "ok": true, "message": "must be a valid 3-letter ISO-4217 code (e.g. USD, EUR, INR)" },
+      { "field": "line_items",     "ok": true, "message": "at least one item required; every item needs description, qty>0, unit_price>0" }
+    ]
+  },
+  "matched_po": {
+    "po_reference": "PO-1001",
+    "vendor_name": "Acme Industrial Supplies",
+    "po_value": 4500,
+    "currency": "USD",
+    "issued_date": "2026-01-10"
+  },
+  "anomalies": [],
+  "reconciliation_status": "MATCHED",
+  "created_at": "2026-05-13T06:47:27.515Z"
+}

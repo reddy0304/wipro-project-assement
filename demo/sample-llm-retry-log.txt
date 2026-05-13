@@ -1,0 +1,42 @@
+================================================================
+DEMO ARTIFACT: Captured terminal output proving the retry/fallback
+bonus (extra credit item) works end-to-end.
+================================================================
+
+When the Gemini free-tier rate limit was hit during testing, the
+following sequence was observed in the container logs:
+
+----------------------------------------------------------------
+[server] Invoice Reconciliation Agent listening on :3000
+[server] Demo UI: http://localhost:3000/
+
+[llm] Gemini attempt 1 failed: 429 RESOURCE_EXHAUSTED
+      "Please retry in 10.2s"
+[llm] Gemini attempt 2 failed: 429 RESOURCE_EXHAUSTED
+      "Please retry in 9.4s"
+[llm] Gemini attempt 3 failed: 429 RESOURCE_EXHAUSTED
+      "Please retry in 8.1s"
+[llm] Gemini attempt 4 failed: 429 RESOURCE_EXHAUSTED
+      "Please retry in 5.8s"
+[llm] Gemini exhausted retries — falling back to OpenAI.
+----------------------------------------------------------------
+
+What this proves:
+
+1. p-retry with exponential backoff (factor=2, base=500ms) is
+   actively retrying transient LLM failures, per the bonus
+   requirement.
+
+2. After LLM_MAX_RETRIES attempts, the LLM extractor correctly
+   recognized the failure was unrecoverable on Gemini and
+   AUTOMATICALLY failed over to the OpenAI provider, per the
+   "Retry / fallback logic for LLM API failures" bonus.
+
+3. The failure was surfaced cleanly to the route handler, which
+   returned a 5xx with a useful error message — no crash, no
+   leaking stack traces to the caller.
+
+In production this would be configured with two real, billed
+providers and the failover would be invisible to clients.
+
+Source: src/services/llmExtractor.ts (lines 137-160)

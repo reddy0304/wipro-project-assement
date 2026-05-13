@@ -1,0 +1,12 @@
+{
+  "vendor_name": "Globex Logistics Pvt Ltd",
+  "invoice_number": "INV-DEMO-NOPO-004",
+  "invoice_date": "2026-05-02",
+  "line_items": [
+    { "description": "Pallet handling fee",      "qty": 50, "unit_price": 1500 },
+    { "description": "Cross-border duty surcharge","qty": 1, "unit_price": 50000 }
+  ],
+  "total_amount": 125000,
+  "currency": "INR",
+  "po_reference": "PO-9999-DOES-NOT-EXIST"
+}

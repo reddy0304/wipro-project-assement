@@ -1,0 +1,12 @@
+{
+  "vendor_name": "Acme Industrial Supplies",
+  "invoice_number": "INV-DEMO-VARIANCE-003",
+  "invoice_date": "2026-05-01",
+  "line_items": [
+    { "description": "Hex bolts M8",     "qty": 1000, "unit_price": 0.45 },
+    { "description": "Steel plates 4mm", "qty": 200,  "unit_price": 30.00 }
+  ],
+  "total_amount": 6450,
+  "currency": "USD",
+  "po_reference": "PO-1001"
+}

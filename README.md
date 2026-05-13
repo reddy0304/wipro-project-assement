@@ -10,6 +10,27 @@ reconciliation report.
 
 ---
 
+## TL;DR — Quick Start (Docker)
+
+```bash
+git clone https://github.com/reddy0304/wipro-project-assement.git
+cd wipro-project-assement
+cp .env.example .env             # then paste your GEMINI_API_KEY into .env
+docker compose up --build
+```
+
+Open <http://localhost:3000/> and you're running. Get a free Gemini key in
+under a minute at <https://aistudio.google.com/app/apikey>.
+
+Prefer native Node? See [§3 Path B](#path-b--native-node-for-development).
+
+> Want to see all three reconciliation outcomes (MATCHED / PARTIAL /
+> FAILED) without uploading anything? Run `.\demo\run-demo.ps1` (Windows)
+> or `bash demo/run-demo.sh` (Mac/Linux). The full demo walkthrough is in
+> [`demo/DEMO_SCRIPT.md`](./demo/DEMO_SCRIPT.md).
+
+---
+
 ## 1 · Tech Stack
 
 | Concern | Choice |
@@ -75,52 +96,129 @@ src/
 mock_data/purchase_orders.json
 public/index.html             # Simple demo UI (bonus)
 tests/                        # Vitest unit tests
+demo/                         # Evaluator demo assets (5 sample invoices + runner scripts + script)
 ```
 
 ---
 
 ## 3 · Setup
 
-### Prerequisites
+There are two ways to run this project. Pick **one**:
 
-- Node.js **>= 20**
-- A free Gemini API key from <https://aistudio.google.com/app/apikey>
+| Path | Best for | Requires |
+|---|---|---|
+| **A. Docker (recommended)** | Reviewers, evaluators — zero local toolchain | Docker Desktop |
+| **B. Native Node** | Active development, hot-reload | Node.js >= 20 |
 
-### Install
+In both cases you need a free Gemini API key from <https://aistudio.google.com/app/apikey>.
+
+### Step 0 · Clone and configure secrets (both paths)
 
 ```bash
 git clone https://github.com/reddy0304/wipro-project-assement.git
 cd wipro-project-assement
-npm install
-cp .env.example .env
-# open .env and paste your GEMINI_API_KEY
+cp .env.example .env       # Windows PowerShell: copy .env.example .env
+# Open .env in any editor and paste your GEMINI_API_KEY value.
 ```
 
-### Run (dev)
+> `.env` is git-ignored — your key never leaves your machine.
 
-```bash
-npm run dev
-# → http://localhost:3000
-```
+---
 
-### Run (production)
+### Path A · Docker (one-command startup)
 
-```bash
-npm run build
-npm start
-```
-
-### Tests
-
-```bash
-npm test
-```
-
-### Docker (one-command startup)
+**Prerequisites:** Docker Desktop running. ([Download Docker Desktop](https://www.docker.com/products/docker-desktop/) for Windows/Mac/Linux.)
 
 ```bash
 docker compose up --build
+```
+
+That single command will:
+
+1. Pull the `node:22-alpine` base image
+2. Build the TypeScript code inside a throwaway "builder" stage
+3. Copy the compiled `dist/` into a slim production image
+4. Start the container, reading `GEMINI_API_KEY` (and the other vars) from your local `.env` file
+5. Expose the API on **http://localhost:3000**
+
+When you see this log line, it's ready:
+
+```
+[server] Invoice Reconciliation Agent listening on :3000
+```
+
+Open <http://localhost:3000/> in your browser to use the demo UI.
+
+#### Useful Docker commands
+
+```bash
+docker compose up -d            # Start in detached (background) mode
+docker compose logs -f          # Tail the container logs
+docker compose ps               # Show container status (healthy / unhealthy)
+docker compose restart          # Restart after a config change
+docker compose down             # Stop and remove the container + network
+docker compose up --build -d    # Rebuild image after code changes, then start
+```
+
+#### What is `docker-compose.yml`?
+
+`docker-compose.yml` is the deployment recipe. Instead of typing a long `docker run` command with a dozen flags, Compose reads this file and runs the equivalent for you. Here is ours, annotated:
+
+```yaml
+services:
+  invoice-agent:                   # service name (used by `docker compose logs invoice-agent`)
+    build: .                       # build an image from the Dockerfile in this folder
+    container_name: invoice-reconciliation-agent
+    ports:
+      - "3000:3000"                # map host port 3000 -> container port 3000
+    environment:                   # env vars passed into the container at runtime
+      - PORT=3000
+      - GEMINI_API_KEY=${GEMINI_API_KEY}                       # read from your local .env
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}         # ${VAR:-default} = use default if unset
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - LLM_MAX_RETRIES=${LLM_MAX_RETRIES:-3}
+      - LLM_RETRY_BASE_MS=${LLM_RETRY_BASE_MS:-500}
+    restart: unless-stopped        # auto-restart if the container crashes
+```
+
+The companion `Dockerfile` is multi-stage:
+- **Stage 1 (`builder`)** installs *all* dependencies and runs `tsc` to produce `dist/`.
+- **Stage 2 (`runtime`)** installs only production deps and copies `dist/` from stage 1.
+This keeps the final image small (~150 MB instead of ~400 MB) and free of dev tools.
+
+#### Docker troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `port is already allocated` | Something else is using port 3000. Kill it, or change the host side: `"3001:3000"` in `docker-compose.yml`, then visit `http://localhost:3001`. |
+| `failed to connect to the docker API` | Docker Desktop isn't running. Start it and wait ~30s for the daemon. |
+| `Missing required env var: GEMINI_API_KEY` | You forgot to create `.env` from `.env.example`, or your shell isn't picking it up. Compose auto-reads `.env` in the same directory. |
+| Container marked `unhealthy` | Tail logs: `docker compose logs -f`. Usually a bad API key. |
+
+---
+
+### Path B · Native Node (for development)
+
+**Prerequisites:** Node.js **>= 20** and npm.
+
+```bash
+npm install
+npm run dev            # hot-reload via tsx --watch
 # → http://localhost:3000
+```
+
+Production-style local run (no watcher):
+
+```bash
+npm run build          # compile TypeScript -> dist/
+npm start              # node dist/index.js
+```
+
+Run the test suite:
+
+```bash
+npm test               # 18 unit tests for FR-3 / FR-4 / FR-5 / FR-6
 ```
 
 ---
